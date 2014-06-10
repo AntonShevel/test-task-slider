@@ -1,9 +1,10 @@
 window.onload = function() {
     init();
+    initSlider();
 };
 
 function init() {
-    var el = document.getElementsByTagName("body")[0];
+    var el = document.getElementById("test");
     el.addEventListener("touchstart", handleEvent, false);
     el.addEventListener("touchend", handleEvent, false);
     el.addEventListener("touchcancel", handleEvent, false);
@@ -23,8 +24,8 @@ function initSlider() {
     var element = document.getElementById('slider'),
         settings = {
             images: [
-                'http://tak-nada.com/images/slider/1m.jpg',
                 'http://tak-nada.com/images/slider/2m.jpg',
+                'http://tak-nada.com/images/slider/1m.jpg',
                 'http://tak-nada.com/images/slider/1o.jpg',
                 'http://tak-nada.com/images/slider/5t.jpg',
                 'http://tak-nada.com/images/slider/4i.jpg'
@@ -34,4 +35,5 @@ function initSlider() {
             swipeDelay: 3000 // arbitrary interger (miliseconds). This is used in 'auto' and 'automanual' modes
         },
         slider = new SwipeSlider(element, settings);
+    return slider;
 }
