@@ -85,6 +85,11 @@ function SwipeSlider(container, options) {
             if(!started)
                 return;
 
+            if ((event.changedTouches[0].pageX - touch.pageX) > 0)
+                console.log('right');
+            else
+                console.log('left');
+
         }
         function swipeEnd(event) {
             started = false;
