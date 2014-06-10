@@ -1,28 +1,8 @@
-window.onload = function() {
-    init();
-    initSlider();
-};
+var TestTask = TestTask || {};
 
-function init() {
-    var el = document.getElementById("test");
-    el.addEventListener("touchstart", handleEvent, false);
-    el.addEventListener("touchend", handleEvent, false);
-    el.addEventListener("touchcancel", handleEvent, false);
-    el.addEventListener("touchleave", handleEvent, false);
-    el.addEventListener("touchmove", handleEvent, false);
-    el.addEventListener("click", handleEvent, false);
-    console.log("initialized.");
-}
-
-function handleEvent(event) {
-    document.getElementById('foo').innerHTML += event.type+'; ';
-    console.log(event);
-}
-
-function initSlider() {
-
-    var element = document.getElementById('slider'),
-        settings = {
+TestTask.Main = function()
+{
+    var settings = {
             images: [
                 'http://tak-nada.com/images/slider/2m.jpg',
                 'http://tak-nada.com/images/slider/1m.jpg',
@@ -30,11 +10,22 @@ function initSlider() {
                 'http://tak-nada.com/images/slider/5t.jpg',
                 'http://tak-nada.com/images/slider/4i.jpg'
             ],
-            mode: 'auto', // possible values: 'auto', 'manual', 'automanual'
-            swipeSpeed: 500, // arbitrary interger (miliseconds)
+            mode: 'automanual', // possible values: 'auto', 'manual', 'automanual'
+            swipeSpeed: 800, // arbitrary interger (miliseconds)
             swipeDelay: 3000 // arbitrary interger (miliseconds). This is used in 'auto' and 'automanual' modes
         },
-        slider = new SwipeSlider(element, settings);
-    console.log(slider.getActiveSlide());
-    return slider;
-}
+        init = function() {
+            console.log('init()');
+            var element = document.getElementById('slider');
+            return new SwipeSlider(element, settings);
+        },
+        oPublic = {
+            init: init
+        };
+    return oPublic;
+}();
+
+window.onload = function() {
+    TestTask.Main.init();
+
+};
