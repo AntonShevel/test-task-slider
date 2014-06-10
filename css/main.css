@@ -67,7 +67,12 @@ textarea {
     background: #ccc;
 }
 
-
+.slider{
+    width: 980px;
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+}
 
 
 

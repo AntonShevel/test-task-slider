@@ -35,5 +35,6 @@ function initSlider() {
             swipeDelay: 3000 // arbitrary interger (miliseconds). This is used in 'auto' and 'automanual' modes
         },
         slider = new SwipeSlider(element, settings);
+    console.log(slider.getActiveSlide());
     return slider;
 }
