@@ -1,12 +1,4 @@
 /*
-- make it oop
--- js inheritance pattern ?
-- create DOM
-- track swipe touch
-- track mouse swipe
-- add animation
-- jslint
-
  var config = {
  // arbitrary number of images
  images: [
@@ -22,17 +14,15 @@
  };
 
  */
-
+/*jslint browser:true */
+/*jslint nomen: true*/
 
 function SwipeSlider(container, options) {
-    var _this = this,
-        _options = {},
+    var _options = {},
         _container,
         _slides = [],
         _activeSlide,
         _direction = -1;
-//    this.container = container;
-//    this.options = {};
 
 
     // assign options
@@ -40,32 +30,35 @@ function SwipeSlider(container, options) {
         _options[option] = value;
     }
 
-    function getOption(option){
+    function getOption(option) {
         return _options[option];
     }
 
     function setOptions(options) {
-        for (var key in options) {
-            if (options.hasOwnProperty(key))
+        var key;
+        for (key in options) {
+            if (options.hasOwnProperty(key)) {
                 setOption(key, options[key]);
+            }
         }
     }
+
     // build dom
     function createDom() {
 
         var images = getOption('images'),
             placeholder = getOption('container'),
-            img;
+            img,
+            i;
 
-        _container = document.createElement('div'),
+        _container = document.createElement('div');
         _container.className = 'slides';
         setTransition(_container);
 
-        for (var i = 0; images[i]; i++) {
+        for (i = 0; images[i]; i += 1) {
             img = document.createElement('img');
             img.src = images[i];
-            //todo move to separate method
-            if (i===0) {
+            if (i === 0) {
                 img.className = 'active';
                 _activeSlide = img;
             }
@@ -74,15 +67,56 @@ function SwipeSlider(container, options) {
         }
         placeholder.appendChild(_container);
     }
+
     //events
     function bindEvents() {
 
-        if (getOption('mode') == 'auto')
-            return false;
+        if (getOption('mode') === 'auto') {
+            return;
+        }
 
         var started = false,
             container = getOption('container'),
             touch;
+
+        function swipeStart(event) {
+            if (started || (event.type !== "mousedown" && event.touches.length !== 1)) {
+                return;
+            }
+            started = true;
+            touch = getCoordinate(event);
+        }
+
+        function swipeContinue(event) {
+            if (!started) {
+                return;
+            }
+            event.preventDefault();
+        }
+
+        function swipeEnd(event) {
+            if (!started) {
+                return;
+            }
+            started = false;
+            var currTouch = getCoordinate(event),
+                minDelta = 25,
+                delta = currTouch - touch;
+
+            if (Math.abs(delta) > minDelta) {
+                change(delta);
+            }
+        }
+
+        function getCoordinate(event) {
+            var coordinate = false;
+            if (event instanceof MouseEvent) {
+                coordinate = event.clientX;
+            } else if (event instanceof TouchEvent) {
+                coordinate = event.changedTouches[0].clientX;
+            }
+            return coordinate;
+        }
 
         container.addEventListener("touchstart", swipeStart, false);
         container.addEventListener("touchmove", swipeContinue, false);
@@ -95,155 +129,85 @@ function SwipeSlider(container, options) {
         container.addEventListener("mouseleave", swipeEnd, false);
         container.addEventListener("mouseup", swipeEnd, false);
 
-        container.addEventListener("dragstart", function(event) {event.preventDefault();}, false);
-
-
-        function swipeStart(event) {
-            if (started || (event.type != "mousedown" && event.touches.length != 1))
-                return;
-
-            started = true;
-            touch = getCoordinate(event);
-        }
-        function swipeContinue(event) {
-
-            if(!started)
-                return;
-            event.preventDefault();
-        }
-        function swipeEnd(event) {
-
-            if(!started)
-                return;
-
-            started = false;
-            var currTouch = getCoordinate(event),
-                minDelta = 25,
-                delta = currTouch - touch;
-
-            if (Math.abs(delta) > minDelta)
-                change(delta);
-        }
-        function getCoordinate(event) {
-            var coordinate = false;
-            if (event instanceof MouseEvent)
-                coordinate = event.clientX;
-            else if (event instanceof TouchEvent)
-                coordinate = event.changedTouches[0].clientX; //pageX
-
-            return coordinate;
-        }
+        container.addEventListener("dragstart", function (event) { event.preventDefault(); }, false);
 
     }
-    function setTransition(element)
-    {
+
+    // set transition duration
+    function setTransition(element) {
         var duration = getOption('swipeSpeed'),
-            properties = ['transition', 'MozTransition', 'WebkitTransition', 'msTransition', 'OTransition'];
-        for (var i = 0; properties[i]; i++) {
+            properties = ['transition', 'MozTransition', 'WebkitTransition', 'msTransition', 'OTransition'],
+            transition = 'all %duration%ms ease',
+            i;
+        for (i = 0; properties[i]; i += 1) {
             if (properties[i] in element.style) {
-                element.style[properties[i]] = 'all ' + duration + 'ms ease';
+                element.style[properties[i]] = transition.replace(/%duration%/, duration);
                 break;
             }
         }
-//        element.
     }
+
+    // add auto slide auto change
     function addAutoSwipe() {
-        if (getOption('mode') === 'manual')
+        if (getOption('mode') === 'manual') {
             return;
-        console.log('set interval');
-//        window.setTimeout(function() {
-        window.setInterval(function() {
+        }
+
+        window.setInterval(function () {
             change(_direction);
-            if (_activeSlide == sibling(_direction))
+            if (_activeSlide === sibling(_direction)) {
                 _direction *= -1;
-//            addTimeOut();
+            }
         }, getOption('swipeDelay'));
     }
+
+    // change slide to sibling
     function change(direction) {
-        var direction = direction > 0 ? 1 : -1,
-            nextSlide = sibling(direction);
-        if (nextSlide == _activeSlide) return;
+        var nextSlide = sibling(direction);
+        if (nextSlide === _activeSlide) {
+            return;
+        }
         _activeSlide.className = '';
         nextSlide.className = 'active';
         _activeSlide = nextSlide;
         _container.style.left = -_activeSlide.offsetLeft + 'px';
     }
-    function sibling(direction) {
-        var direction = direction > 0 ? 1 : -1,
-            nextSlide = _slides[_slides.indexOf(_activeSlide)-direction] ? _slides[_slides.indexOf(_activeSlide)-direction] : _activeSlide;
+
+    // get neighbour slide element
+    function sibling(delta) {
+        var direction = delta > 0 ? 1 : -1,
+            nextSlide = _slides[_slides.indexOf(_activeSlide) - direction] || _activeSlide;
         return nextSlide;
     }
 
-    this.prev = function() {
+    this.prev = function () {
         change(1);
     };
 
-    this.next = function() {
+    this.next = function () {
         change(-1);
     };
 
-    this.current = function() {
+    this.current = function () {
         return _activeSlide;
     };
 
-    this.nextSlide = function() {
+    this.nextSlide = function () {
         return sibling(1);
     };
 
-    this.prevSlide = function() {
+    this.prevSlide = function () {
         return sibling(-1);
     };
 
-    this.getSlides = function() {
+    this.getSlides = function () {
         return _slides;
-    }
+    };
 
     setOptions(options);
     setOption('container', container);
     createDom();
-    bindEvents(this.prev,this.next);
+    bindEvents();
     addAutoSwipe();
 
 }
-
-/*
-SwipeSlider.prototype = {
-    getActiveSlide: function() {
-        var image = this.container.getElementsByClassName('active')[0],
-            images = this.container.getElementsByTagName('img');
-        console.log( images, image );
-        return this.container.getElementsByClassName('active')[0];
-    },
-
-    prevSlide: function() {
-        var slide = this.getActiveSlide(),
-            slides = this.container.getElementsByClassName('slides')[0];
-
-        slides.style.left =slides.offsetLeft - slide.clientWidth + "px";
-    },
-
-    nextSlide: function() {
-        var slide = this.getActiveSlide(),
-            slides = this.container.getElementsByClassName('slides')[0];
-
-        slides.style.left =slides.offsetLeft + slide.clientWidth + "px";
-    }
-};
-*/
-/*
-SwipeSlider.prototype.getActiveSlide = function() {
-    return this.container.getElementsByClassName('active')[0];
-};
-
-SwipeSlider.prototype.nextSlide = function() {
-    console.log(this);
-    var slide = this.getActiveSlide(),
-        slides = this.container.getElementsByClassName('slides')[0];
-    slides.style.left -= slide.clientWidth;
-
-};
-
-SwipeSlider.prototype.prevSlide = function() {
-    console.log('prev');
-};
-*/

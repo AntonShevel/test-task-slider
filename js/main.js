@@ -15,7 +15,6 @@ TestTask.Main = function()
             swipeDelay: 3000 // arbitrary interger (miliseconds). This is used in 'auto' and 'automanual' modes
         },
         init = function() {
-            console.log('init()');
             var element = document.getElementById('slider');
             return new SwipeSlider(element, settings);
         },
