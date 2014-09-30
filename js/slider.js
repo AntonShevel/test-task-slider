@@ -61,10 +61,8 @@ function SwipeSlider(container, options) {
                 img.className = 'active';
                 _activeSlide = img;
             }
-            if (img.naturalWidth !== 0) {
-                _this.container.appendChild(img);
-                _slides.push(img);
-            }
+            _this.container.appendChild(img);
+            _slides.push(img);
         }
         _this.setTransition(_this.container, getOption('swipeSpeed'));
         placeholder.appendChild(_this.container);
