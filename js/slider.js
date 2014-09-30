@@ -19,10 +19,10 @@
 
 function SwipeSlider(container, options) {
     var _options = {},
-        _container,
         _slides = [],
         _activeSlide,
-        _direction = -1;
+        _direction = -1,
+        _this = this;
 
 
     // assign options
@@ -51,9 +51,8 @@ function SwipeSlider(container, options) {
             img,
             i;
 
-        _container = document.createElement('div');
-        _container.className = 'slides';
-        setTransition(_container);
+        _this.container = document.createElement('div');
+        _this.container.className = 'slides';
 
         for (i = 0; images[i]; i += 1) {
             img = document.createElement('img');
@@ -62,10 +61,13 @@ function SwipeSlider(container, options) {
                 img.className = 'active';
                 _activeSlide = img;
             }
-            _container.appendChild(img);
-            _slides.push(img);
+            if (img.naturalWidth !== 0) {
+                _this.container.appendChild(img);
+                _slides.push(img);
+            }
         }
-        placeholder.appendChild(_container);
+        _this.setTransition(_this.container, getOption('swipeSpeed'));
+        placeholder.appendChild(_this.container);
     }
 
     //events
@@ -104,7 +106,7 @@ function SwipeSlider(container, options) {
                 delta = currTouch - touch;
 
             if (Math.abs(delta) > minDelta) {
-                change(delta);
+                _this.change(delta);
             }
         }
 
@@ -133,20 +135,6 @@ function SwipeSlider(container, options) {
 
     }
 
-    // set transition duration
-    function setTransition(element) {
-        var duration = getOption('swipeSpeed'),
-            properties = ['transition', 'MozTransition', 'WebkitTransition', 'msTransition', 'OTransition'],
-            transition = 'all %duration%ms ease',
-            i;
-        for (i = 0; properties[i]; i += 1) {
-            if (properties[i] in element.style) {
-                element.style[properties[i]] = transition.replace(/%duration%/, duration);
-                break;
-            }
-        }
-    }
-
     // add auto slide auto change
     function addAutoSwipe() {
         if (getOption('mode') === 'manual') {
@@ -154,54 +142,33 @@ function SwipeSlider(container, options) {
         }
 
         window.setInterval(function () {
-            change(_direction);
+            _this.change(_direction);
             if (_activeSlide === sibling(_direction)) {
                 _direction *= -1;
             }
         }, getOption('swipeDelay'));
     }
 
-    // change slide to sibling
-    function change(direction) {
-        var nextSlide = sibling(direction);
-        if (nextSlide === _activeSlide) {
-            return;
-        }
-        _activeSlide.className = '';
-        nextSlide.className = 'active';
-        _activeSlide = nextSlide;
-        _container.style.left = -_activeSlide.offsetLeft + 'px';
-    }
-
     // get neighbour slide element
     function sibling(delta) {
-        var direction = delta > 0 ? 1 : -1,
-            nextSlide = _slides[_slides.indexOf(_activeSlide) - direction] || _activeSlide;
-        return nextSlide;
+        var direction = delta > 0 ? 1 : -1;
+        return _slides[_slides.indexOf(_activeSlide) - direction] || _activeSlide;
     }
 
-    this.prev = function () {
-        change(1);
-    };
-
-    this.next = function () {
-        change(-1);
-    };
-
-    this.current = function () {
-        return _activeSlide;
-    };
-
-    this.nextSlide = function () {
-        return sibling(1);
-    };
-
-    this.prevSlide = function () {
-        return sibling(-1);
+    this.getSibling = function (direction) {
+        return sibling(direction);
     };
 
     this.getSlides = function () {
         return _slides;
+    };
+
+    this.getActiveSlide = function() {
+        return _activeSlide;
+    };
+
+    this.setActiveSlide = function(slide) {
+        _activeSlide = slide;
     };
 
     setOptions(options);
@@ -211,3 +178,95 @@ function SwipeSlider(container, options) {
     addAutoSwipe();
 
 }
+
+// change slide to sibling
+SwipeSlider.prototype.change = function(direction) {
+    var nextSlide = this.getSibling(direction),
+        activeSlide = this.getActiveSlide(),
+        _this = this;
+    if (nextSlide === activeSlide) {
+        return;
+    }
+    activeSlide.className = '';
+    nextSlide.className = 'active';
+    _this.setActiveSlide(nextSlide);
+    _this.container.style.left = -activeSlide.offsetLeft + 'px';
+};
+
+// set transition duration
+SwipeSlider.prototype.setTransition = function(element, duration) {
+
+};
+
+
+
+function SwipeSliderSlide (element, settings) {
+    SwipeSlider.call(this, element, settings);
+}
+SwipeSliderSlide.prototype = Object.create(SwipeSlider.prototype);
+
+SwipeSliderSlide.prototype.change = function(direction) {
+    var nextSlide = this.getSibling(direction),
+        activeSlide = this.getActiveSlide(),
+        _this = this;
+    if (nextSlide === activeSlide) {
+        return;
+    }
+    activeSlide.className = '';
+    nextSlide.className = 'active';
+    _this.setActiveSlide(nextSlide);
+    _this.container.style.left = -activeSlide.offsetLeft + 'px';
+};
+
+SwipeSliderSlide.prototype.setTransition = function(element, duration) {
+    var properties = ['transition', 'MozTransition', 'WebkitTransition', 'msTransition', 'OTransition'],
+        transition = 'all %duration%ms ease',
+        i;
+    for (i = 0; properties[i]; i += 1) {
+        if (properties[i] in element.style) {
+            element.style[properties[i]] = transition.replace(/%duration%/, duration);
+            break;
+        }
+    }
+};
+
+
+function SwipeSliderFade (element, settings) {
+    SwipeSlider.call(this, element, settings);
+}
+
+SwipeSliderFade.prototype = Object.create(SwipeSlider.prototype);
+
+SwipeSliderFade.prototype.change = function(direction) {
+    var nextSlide = this.getSibling(direction),
+        activeSlide = this.getActiveSlide(),
+        _this = this;
+    if (nextSlide === activeSlide) {
+        return;
+    }
+    activeSlide.className = '';
+    activeSlide.style.opacity = 0;
+    nextSlide.className = 'active';
+    nextSlide.style.opacity = 1;
+    console.log(activeSlide, nextSlide);
+    _this.setActiveSlide(nextSlide);
+
+};
+
+SwipeSliderFade.prototype.setTransition = function(element, duration) {
+    var properties = ['transition', 'MozTransition', 'WebkitTransition', 'msTransition', 'OTransition'],
+        transition = 'all %duration%ms ease',
+        elements = this.getSlides(),
+        i;
+
+    elements.forEach(function(element){
+        for (i = 0; properties[i]; i += 1) {
+            element.style.opacity = element.className === 'active' ? 1 : 0;
+            element.style.position = 'absolute';
+            if (properties[i] in element.style) {
+                element.style[properties[i]] = transition.replace(/%duration%/, duration);
+                break;
+            }
+        }
+    });
+};

@@ -1,2 +1,2 @@
-test-task-menu
+test-task-slider
 ==============
